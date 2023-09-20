@@ -7,12 +7,16 @@ from azure.storage.blob import BlobServiceClient
 # 2. Create the app object
 app = Flask(__name__, template_folder='static')
 
+storage_account_key = "PK8zHr5xPaDmBLj6h9QPpOED4cZ/eQUTzfp5WDC7sUsV9pSdXpENI5t5S3RqRt2mgmnR/EL6Dy9b+ASt2TgIsQ=="
+storage_account_name = "model23"
+connection_string = "DefaultEndpointsProtocol=https;AccountName=model23;AccountKey=PK8zHr5xPaDmBLj6h9QPpOED4cZ/eQUTzfp5WDC7sUsV9pSdXpENI5t5S3RqRt2mgmnR/EL6Dy9b+ASt2TgIsQ==;EndpointSuffix=core.windows.net"
+container_name = "modelcontainer"
+
 # Replace with your connection string
-connection_string = "DefaultEndpointsProtocol=https;AccountName=grml23;AccountKey=PO1VY2bNJNknpEeFW31hgE4vH7kHpVhcQjPSdY5wkOPZq9zImPjWptm1Pd/JPV8Y4fqL522bxsGe+ASt58y/pA==;EndpointSuffix=core.windows.net"
 
 # Replace with the container and blob names you want to access
-container_name = "grml23"
-blob_name = "PyC_MASTER_MAY_29_Low_Miles_NO-RPM"
+container_name = "modelblob"
+blob_name = "PyC_MASTER_MAY_11_Low_Miles_NO-RPM"
 
 # Replace with the local folder path where you want to store the downloaded file
 local_folder_path = "model"
