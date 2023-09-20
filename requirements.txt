@@ -1,0 +1,5 @@
+
+pycaret
+Flask==2.0.2
+azure-storage-blob
+gunicorn

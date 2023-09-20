@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        #csv-file {
+            margin-right: 1rem;
+        }
+
+        #result {
+            margin-bottom: 1rem;
+        }
+
+        table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+th, td {
+    padding: 0.5rem;
+    text-align: left;
+    border: 1px solid #ccc;
+}
+
+th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+tr:nth-child(even) {
+    background-color: #f8f8f8;
+}
+
+
+        button {
+        background-color: #7e26a7;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 0.25rem 0.5rem;
+        cursor: pointer;
+        border-radius: 4px;
+        transition-duration: 0.4s;
+    }
+
+    button:hover {
+        background-color: #cbafd3;
+    }
+
+    .loader {
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+    </style>
+
+
+</head>
+<body>
+    <h1>Upload a CSV file: Low Miles Under 50 (50 is not included)</h1>
+    <form>
+        <input type="file" id="csv-file" accept=".csv" />
+        <button type="button" onclick="uploadFile()">Predict</button>
+    </form>
+    <div class="loader" id="loader"></div>
+
+    <a id="download-link" style="display:none" download="predictions.csv">Download Predictions</a>
+    <pre id="result"></pre>
+    
+
+    <script>
+        let uploadedFileName = '';
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('csv-file');
+            const file = fileInput.files[0];
+            uploadedFileName = file.name;
+            const formData = new FormData();
+            formData.append('csv_file', file);
+
+            // Show the loader
+            document.getElementById('loader').style.display = 'block';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const jsonResponse = await response.json();
+
+                    document.getElementById('loader').style.display = 'none';
+
+
+                    
+                    displayTable(jsonResponse);
+
+                    // document.getElementById('result').textContent = JSON.stringify(jsonResponse, null, 2);
+                    
+                    // Convert JSON to CSV
+                    const csvContent = jsonToCsv(jsonResponse);
+
+                    // Create a Blob with CSV content
+                    const blob = new Blob([csvContent], { type: 'text/csv' });
+
+                    // Create a download link and set the Blob URL
+                    const downloadLink = document.getElementById('download-link');
+                    downloadLink.href = URL.createObjectURL(blob);
+                    downloadLink.download = `Prediction LM ${uploadedFileName}`;
+                    downloadLink.style.display = 'block';
+                } else {
+                    document.getElementById('result').textContent = `Error: ${response.status} ${response.statusText}`;
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        function jsonToCsv(jsonData) {
+            const keys = Object.keys(jsonData[0]);
+            const csvData = jsonData.map(row => keys.map(key => {
+                const value = row[key];
+                return typeof value === 'string' && value.includes(',') ? `"${value}"` : value;
+            }).join(','));
+            csvData.unshift(keys.join(',')); // Add header row
+            return csvData.join('\n');
+        }
+
+        function displayTable(jsonData) {
+            const keys = Object.keys(jsonData[0]);
+            const table = document.createElement('table');
+            
+            // Create header row
+            const headerRow = document.createElement('tr');
+            keys.forEach(key => {
+                const th = document.createElement('th');
+                th.textContent = key;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+
+            // Create data rows
+            jsonData.forEach(row => {
+                const tr = document.createElement('tr');
+                keys.forEach(key => {
+                    const td = document.createElement('td');
+                    td.textContent = row[key];
+                    tr.appendChild(td);
+                });
+                table.appendChild(tr);
+            });
+
+            // Replace result div content with the table
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+            resultDiv.appendChild(table);
+        }
+
+
+    </script>
+</body>
+</html>
